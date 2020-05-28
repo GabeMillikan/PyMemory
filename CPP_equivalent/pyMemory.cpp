@@ -30,12 +30,17 @@ bool memory::attach(wchar_t name[])
 
 void memory::listModules()
 {
+	/* I don't feel like dealing with c++ arrays, so im just gonna print them out */
+	/* in python, make a a list of names and return it */
+
 	HANDLE snapshot = CreateToolhelp32Snapshot(TH32CS_SNAPMODULE | TH32CS_SNAPMODULE32, this->processId);
 	MODULEENTRY32 moduleEntry = MODULEENTRY32();
 	moduleEntry.dwSize = sizeof(moduleEntry);
 
 	while (Module32Next(snapshot, &moduleEntry))
 		std::wcout << moduleEntry.szModule << std::endl;
+
+	CloseHandle(snapshot);
 }
 
 DWORD memory::getModuleBase(wchar_t name[])
