@@ -243,4 +243,3 @@ class memory:
         buffer = type()
         kernel32.ReadProcessMemory(self.hProcess, wt.LPVOID(address), ct.byref(buffer), ct.sizeof(type), ct.byref(ct.c_ulong(0)))
         return buffer
-        
