@@ -1,6 +1,4 @@
-from pyMemory import memory
-import ctypes as ct
-from ctypes import wintypes as wt
+from pyMemory import *
 import time
 
 mem = memory()
@@ -17,13 +15,13 @@ print("ac_client.exe -> %s" % hex(ac_client))
 
 # Get LocalPlayer address
 print()
-localPlayerBase = mem.read(ac_client + 0x10f4f4, type = wt.DWORD).value
+localPlayerBase = mem.read(ac_client + 0x10f4f4, type = c.DWORD).value
 print("LocalPlayer -> %s" % hex(localPlayerBase))
 
 # Print damage, and regenerate to full health
 print()
 while True:
-    hp = mem.read(localPlayerBase + 0xf8, type = ct.c_int).value
+    hp = mem.read(localPlayerBase + 0xf8, type = c.int).value
     if (hp < 100):
         print("Player was damaged to %d health, regenerating..." % hp)
-        mem.write(localPlayerBase + 0xf8, ct.c_int(100))
+        mem.write(localPlayerBase + 0xf8, c.int(100))
