@@ -224,7 +224,7 @@ class memory:
         
         while (kernel32.Module32Next(snapshot, ct.byref(moduleEntry))):
             if (moduleEntry.szModule.decode('utf-8') == name):
-                return moduleEntry.hModule # integer
+                return moduleEntry.hModule # python `int` instance
         
         kernel32.CloseHandle(snapshot)
         return 0
@@ -242,4 +242,16 @@ class memory:
         '''
         buffer = type()
         kernel32.ReadProcessMemory(self.hProcess, wt.LPVOID(address), ct.byref(buffer), ct.sizeof(type), ct.byref(ct.c_ulong(0)))
-        return buffer
+        return buffer # note that this will still have the ctype type, so you'll need to do "memory.read(0x69, type = wt.DWORD).value"
+    
+    def write(self, address, object):
+        '''
+        template<class T>
+        bool memory::write(uint32_t address, T object)
+        {
+            return WriteProcessMemory(hProcess, (LPVOID)address, &object, sizeof(T), 0);
+        }
+        '''
+        return kernel32.WriteProcessMemory(self.hProcess, wt.LPVOID(address), ct.byref(object), ct.sizeof(object), ct.byref(ct.c_ulong(0)))
+        
+        

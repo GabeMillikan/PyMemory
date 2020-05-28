@@ -20,9 +20,10 @@ print()
 localPlayerBase = mem.read(ac_client + 0x10f4f4, type = wt.DWORD).value
 print("LocalPlayer -> %s" % hex(localPlayerBase))
 
-# Periodically print health
+# Print damage, and regenerate to full health
 print()
 while True:
     hp = mem.read(localPlayerBase + 0xf8, type = ct.c_int).value
-    print("Current Health: %d\t" % hp, end = '\r')
-    time.sleep(1/1000)
+    if (hp < 100):
+        print("Player was damaged to %d health, regenerating..." % hp)
+        mem.write(localPlayerBase + 0xf8, ct.c_int(100))

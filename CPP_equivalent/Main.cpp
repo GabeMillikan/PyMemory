@@ -22,15 +22,18 @@ int main()
 	/* Get LocalPlayer address */
 	std::cout << std::endl;
 	DWORD localPlayerBase = mem->read<DWORD>(ac_client + 0x10f4f4);
-	std::cout << "0x" << std::hex << localPlayerBase << std::dec << std::endl;
+	std::cout << "LocalPlayer -> 0x" << std::hex << localPlayerBase << std::dec << std::endl;
 
-	/* Periodically print health */
+	/* Print damage, and regenerate to full health */
 	std::cout << std::endl;
 	while (true)
 	{
 		int hp = mem->read<int>(localPlayerBase + 0xf8);
-		std::cout << "Current Health: " << hp << "\t\r";
-		std::this_thread::sleep_for(std::chrono::milliseconds(1));
+		if (hp < 100)
+		{
+			std::cout << "Player was damaged to " << hp << " health, regenerating..." << std::endl;
+			mem->write<int>(localPlayerBase + 0xf8, 100);
+		}
 	};
 
     return 0;
