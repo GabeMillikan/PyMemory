@@ -3,7 +3,7 @@ import subprocess
 import re
 
 '''
-    Main Class
+    Main Class for attaching, reading, and writing to memory
 '''
 class memory:
     def __init__(self, printErrors = False):
@@ -110,7 +110,7 @@ class memory:
         '''
         /* In python, pass the template class as an argument */
         template<class T>
-        T memory::read(uint32_t address)
+        T memory::read(uint64_t address)
         {
             T buffer;
             ReadProcessMemory(hProcess, (LPVOID)address, &buffer, sizeof(T), 0);
@@ -124,11 +124,18 @@ class memory:
     def write(self, address, object):
         '''
         template<class T>
-        bool memory::write(uint32_t address, T object)
+        bool memory::write(uint64_t address, T object)
         {
             return WriteProcessMemory(hProcess, (LPVOID)address, &object, sizeof(T), 0);
         }
         '''
         return c.kernel32.WriteProcessMemory(self.hProcess, c.LPVOID(address), c.byref(object), c.sizeof(object), c.byref(c.ulong(0)))
         
+    def processRunning(self):
+        '''
+        DWORD code;
+        return GetExitCodeProcess(this->hProcess, &code) && (code == STILL_ACTIVE);
+        '''
+        code = c.DWORD()
+        return c.kernel32.GetExitCodeProcess(self.hProcess, c.byref(code)) and (code.value == c.STILL_ACTIVE)
         

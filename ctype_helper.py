@@ -75,59 +75,66 @@ for thingName in dir(wt):
 kernel32 = WinDLL('kernel32', use_last_error = True)
 
 # Windows Structures
-class MODULEENTRY32(Structure):
-    _fields_ = [
-        ( 'dwSize'        , DWORD            ), 
-        ( 'th32ModuleID'  , DWORD            ),
-        ( 'th32ProcessID' , DWORD            ),
-        ( 'GlblcntUsage'  , DWORD            ),
-        ( 'ProccntUsage'  , DWORD            ),
-        ( 'modBaseAddr'   , POINTER(BYTE)    ),
-        ( 'modBaseSize'   , DWORD            ), 
-        ( 'hModule'       , HMODULE          ),
-        ( 'szModule'      , char * 256       ),
-        ( 'szExePath'     , char * 260       ),
-    ]
+def createStruct(*args):
+    global _custom_class_count
+    
+    f = []
+    for i in range(0, len(args), 2):
+        type, name = args[i], args[i+1]
+        f.append((name, type))
+    
+    class CC(Structure):
+        _fields_ = f
+    
+    return CC
 
+MODULEENTRY32 = createStruct(
+    DWORD,      'dwSize',
+    DWORD,      'th32ModuleID',
+    DWORD,      'th32ProcessID',
+    DWORD,      'GlblcntUsage',
+    DWORD,      'ProccntUsage',
+    BYTE_p,     'modBaseAddr',
+    DWORD,      'modBaseSize',
+    HMODULE,    'hModule',
+    char * 256, 'szModule',
+    char * 260, 'szExePath',
+)
 
-class PROCESSENTRY32(Structure):
-    _fields_ = [
-        ( 'dwSize'              , DWORD        ),
-        ( 'cntUsage'            , DWORD        ),
-        ( 'th32ProcessID'       , DWORD        ),
-        ( 'th32DefaultHeapID'   , ulong_p      ),
-        ( 'th32ModuleID'        , DWORD        ),
-        ( 'cntThreads'          , DWORD        ),
-        ( 'th32ParentProcessID' , DWORD        ),
-        ( 'pcPriClassBase'      , long         ),
-        ( 'dwFlags'             , DWORD        ),
-        ( 'szExeFile'           , char * 260   ), # actually wchar, but i think ctypes automatically converts?
-    ]
+MODULEINFO = createStruct(
+    LPVOID, 'lpBaseOfDll',
+    DWORD,  'SizeOfImage',
+    LPVOID, 'EntryPoint',
+)
 
+MEMORY_BASIINFORMATION = createStruct(
+    LPVOID, 'BaseAddress',
+    LPVOID, 'AllocationBase',
+    DWORD,  'AllocationProtect',
+    size_t, 'RegionSize',
+    DWORD,  'State',
+    DWORD,  'Protect',
+    DWORD,  'Type',
+)
 
-class MODULEINFO(Structure):
-    _fields_ = [
-        ( 'lpBaseOfDll' , LPVOID ),
-        ( 'SizeOfImage' , DWORD  ),
-        ( 'EntryPoint'  , LPVOID ),
-    ]
-
-class MEMORY_BASIINFORMATION(Structure):
-    _fields_ = [
-        ( 'BaseAddress'       , LPVOID   ),
-        ( 'AllocationBase'    , LPVOID   ),
-        ( 'AllocationProtect' , DWORD    ),
-        ( 'RegionSize'        , size_t   ),
-        ( 'State'             , DWORD    ),
-        ( 'Protect'           , DWORD    ),
-        ( 'Type'              , DWORD    ),
-    ]
+PROCESSENTRY32 = createStruct(
+    DWORD,    'dwSize',
+    DWORD,    'cntUsage',
+    DWORD,    'th32ProcessID',
+    ulong_p,  'th32DefaultHeapID',
+    DWORD,    'th32ModuleID',
+    DWORD,    'cntThreads',
+    DWORD,    'th32ParentProcessID',
+    long,     'pcPriClassBase',
+    DWORD,    'dwFlags',
+    char*260, 'szExeFile',
+)
 
 # Functions
 kernel32.OpenProcess.argtypes = [DWORD, BOOL, DWORD]
 kernel32.OpenProcess.restype = HANDLE
 
-kernel32.CloseHandle.argtypes = [HANDLE, ]
+kernel32.CloseHandle.argtypes = [HANDLE]
 kernel32.CloseHandle.restype = BOOL
 
 kernel32.Process32First.argtypes = [HANDLE, POINTER(PROCESSENTRY32)]
@@ -139,8 +146,14 @@ kernel32.Process32Next.restype = BOOL
 kernel32.Module32Next.argtypes = [HANDLE, POINTER(MODULEENTRY32)]
 kernel32.Module32Next.restype = BOOL
 
+kernel32.GetExitCodeProcess.argtypes = [HANDLE, DWORD_p]
+kernel32.GetExitCodeProcess.restype = BOOL
+
 kernel32.ReadProcessMemory.argtypes = [HANDLE, LPVOID, LPVOID, size_t, size_t_p]
 kernel32.ReadProcessMemory.restype = BOOL
+
+kernel32.WriteProcessMemory.argtypes = [HANDLE, LPVOID, LPVOID, size_t, size_t_p]
+kernel32.WriteProcessMemory.restype = BOOL
 
 # Constants
 PROCESS_TERMINATE                  = 0x0001
@@ -186,3 +199,5 @@ TH32CS_SNAPMODULE   = 0x00000008
 TH32CS_SNAPMODULE32 = 0x00000010
 TH32CS_SNAPALL      = (TH32CS_SNAPHEAPLIST | TH32CS_SNAPPROCESS | TH32CS_SNAPTHREAD | TH32CS_SNAPMODULE)
 TH32CS_INHERIT      = 0x80000000
+
+STILL_ACTIVE = 0x00000103

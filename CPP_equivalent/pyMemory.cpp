@@ -43,7 +43,7 @@ void memory::listModules()
 	CloseHandle(snapshot);
 }
 
-DWORD memory::getModuleBase(wchar_t name[])
+uint64_t memory::getModuleBase(wchar_t name[])
 {
 	HANDLE snapshot = CreateToolhelp32Snapshot(TH32CS_SNAPMODULE | TH32CS_SNAPMODULE32, this->processId);
 	MODULEENTRY32 moduleEntry = MODULEENTRY32();
@@ -52,9 +52,15 @@ DWORD memory::getModuleBase(wchar_t name[])
 	while (Module32Next(snapshot, &moduleEntry))
 		if (int(wcscmp(moduleEntry.szModule, name)) == 0)
 		{
-			return (DWORD)moduleEntry.hModule; //DLL's base addr wrt the process
+			return (uint64_t)moduleEntry.hModule; //DLL's base addr wrt the process
 		}
 	
 	CloseHandle(snapshot);
 	return 0;
+}
+
+bool memory::processRunning()
+{
+	DWORD code;
+	return GetExitCodeProcess(this->hProcess, &code) && (code == STILL_ACTIVE);
 }
