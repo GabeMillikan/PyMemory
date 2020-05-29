@@ -138,4 +138,3 @@ class memory:
         '''
         code = c.DWORD()
         return c.kernel32.GetExitCodeProcess(self.hProcess, c.byref(code)) and (code.value == c.STILL_ACTIVE)
-        
