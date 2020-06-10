@@ -1,6 +1,10 @@
-import ctype_helper as c
+import pyMemory.ctype_helper as c
 import subprocess
 import re
+'''
+    This isn't really part of pyMemory, but its useful
+'''
+GetAsyncKeyState = c._ctypes.windll.user32.GetAsyncKeyState
 
 '''
     Main Class for attaching, reading, and writing to memory
@@ -80,7 +84,7 @@ class memory:
         c.kernel32.CloseHandle(snapshot)
         return names
     
-    def getModuleBase(self, name):
+    def getModule(self, name):
         '''
         HANDLE snapshot = CreateToolhelp32Snapshot(TH32CS_SNAPMODULE | TH32CS_SNAPMODULE32, this->processId);
         MODULEENTRY32 moduleEntry = MODULEENTRY32();
@@ -89,7 +93,7 @@ class memory:
         while (Module32Next(snapshot, &moduleEntry))
             if (int(wcscmp(moduleEntry.szModule, name)) == 0)
             {
-                return (DWORD)moduleEntry.hModule; //DLL's base addr wrt the process
+                return moduleEntry.hModule; //DLL's base addr wrt the process
             }
         
         CloseHandle(snapshot);

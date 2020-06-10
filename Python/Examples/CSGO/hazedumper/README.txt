@@ -1,0 +1,2 @@
+Hazedumper is a program that gets current memory offsets for CSGO - more info at https://github.com/frk1/hazedumper
+I am using a version of this program from may 2019, so it probably will need to be updated.

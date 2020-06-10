@@ -1,25 +1,25 @@
 import sys
 c = sys.modules[__name__] # this library, ctype_helper
-import ctypes as ct
+import ctypes as _ctypes
 from ctypes import wintypes as wt
 
 # check if i can remove the "" prefixes without causing overlapping variable names
 # As of 5/28/2020, there is no overlap. I doubt that this library will change much at all in the future,
 # but i'll leave this check in because it only runs once on init, and doesn't take more than 10 ms
-for ogName in dir(ct):
-    typeValue = getattr(ct, ogName)
+for ogName in dir(_ctypes):
+    typeValue = getattr(_ctypes, ogName)
     # only allow actual types
     if "_type_" in dir(typeValue):
         if ogName.startswith("c_"):
-            if (ogName[2:] in dir(ct)):
+            if (ogName[2:] in dir(_ctypes)):
                 quit("By changing variable '%s' to '%s', overlap is caused in ctypes" % (ogName, ogName[2:]))
             if (ogName[2:] in dir(wt)):
                 quit("By changing variable '%s' to '%s', overlap is caused in ctypes.wintypes" % (ogName, ogName[2:]))
 
 # allTypes all ctype types to a dict, without the  prefix
 allTypes = {}
-for ogName in dir(ct):
-    typeValue = getattr(ct, ogName)
+for ogName in dir(_ctypes):
+    typeValue = getattr(_ctypes, ogName)
     # only allow actual types
     if "_type_" in dir(typeValue):
         name = ogName[2:] if ogName.startswith("c_") else ogName
@@ -38,7 +38,7 @@ pointerTypes = {}
 for typeName in allTypes:
     typeValue = allTypes[typeName]
     ptrName = typeName + "_p"
-    ptrType = ct.POINTER(typeValue)
+    ptrType = _ctypes.POINTER(typeValue)
     pointerTypes[ptrName] = ptrType
     
 # add pointers to allTypes
@@ -51,8 +51,8 @@ for typeName in allTypes:
 
 # now unpack the rest of the ctypes, that are NOT listed in allTypes (like buffer, which was omitted above)
 # do not incldue dunder methods
-for thingName in dir(ct):
-    typeValue = getattr(ct, thingName)
+for thingName in dir(_ctypes):
+    typeValue = getattr(_ctypes, thingName)
     name = thingName[2:] if (thingName.startswith("c_") and isinstance(typeValue, type)) else thingName
     if (name.startswith("__")) or (name in allTypes):
         continue
@@ -67,8 +67,8 @@ for thingName in dir(wt):
     setattr(c, name, typeValue)
     
 
-# at this point, we can access ctypes or wintypes by just putting `char` or `dword_p` instead of `ct.char` or `ct.POINTER(wt.DWORD)`
-# also, we can use functions like `byref` instead of `ct.byref`
+# at this point, we can access ctypes or wintypes by just putting `char` or `dword_p` instead of `ctypes.char` or `ctypes.POINTER(wt.DWORD)`
+# also, we can use functions like `byref` instead of `ctypes.byref`
 # print(byref(dword_p(dword(20)))) => print( &&(DWORD)20 )
 
 # open DLLs

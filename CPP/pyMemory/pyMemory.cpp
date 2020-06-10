@@ -43,7 +43,7 @@ void memory::listModules()
 	CloseHandle(snapshot);
 }
 
-uint64_t memory::getModuleBase(wchar_t name[])
+HMODULE memory::getModule(wchar_t name[])
 {
 	HANDLE snapshot = CreateToolhelp32Snapshot(TH32CS_SNAPMODULE | TH32CS_SNAPMODULE32, this->processId);
 	MODULEENTRY32 moduleEntry = MODULEENTRY32();
@@ -52,7 +52,7 @@ uint64_t memory::getModuleBase(wchar_t name[])
 	while (Module32Next(snapshot, &moduleEntry))
 		if (int(wcscmp(moduleEntry.szModule, name)) == 0)
 		{
-			return (uint64_t)moduleEntry.hModule; //DLL's base addr wrt the process
+			return moduleEntry.hModule; //DLL's base addr wrt the process
 		}
 	
 	CloseHandle(snapshot);

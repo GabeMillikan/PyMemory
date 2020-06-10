@@ -1,4 +1,10 @@
-from pyMemory import *
+from pyMemory.pyMemory import *
+
+# relevant used in this demo
+offset = {
+    "roll": 0x48,
+    "health": 0xf8,
+}
 
 vec3 = c.createStruct(
     c.float, "x",

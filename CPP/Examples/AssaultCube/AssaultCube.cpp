@@ -12,10 +12,10 @@ Except this is written in c++
 #include <thread>
 
 /* get the CPlayer, vec3, and euler classes */
-#include "pyMemory.hpp"
+#include "acStructs.hpp"
 
 /* memory manager */
-#include "acStructs.hpp"
+#include "../../pyMemory/pyMemory.hpp"
 
 int main()
 {
@@ -29,14 +29,22 @@ int main()
 	auto attachTime = std::chrono::high_resolution_clock::now();
 
 	/* Get the base address for assaultcube's main module. (this is also called ac_client.exe) */
-	uint64_t ac_client = mem->getModuleBase(L"ac_client.exe");
+	uint64_t ac_client = (uint64_t)mem->getModule(L"ac_client.exe");
 
 	/* Main loop */
-	DWORD lPlayerBase;
+	DWORD lPlayerBase = mem->read<DWORD>(ac_client + 0x10f4f4);
 	CPlayer lPlayer;
+	euler currentLookAngles;
+	int currentHealth;
 	euler angles{0,0,0};
 	uint64_t iterations = 0;
 	double lastPrintTime = 0;
+
+	/* IF YOU SEE THESE NEXT 4 LINES OF CODE, THEN I COMMITTED ON ACCIDENT, THIS IS NOT READY YET */
+	//uintptr_t hpAddress = lPlayerBase + 0xf8;
+	//int hpValue = mem->read<int>(hpAddress);
+	//std::cout << "HP: " << hpValue << "stored at 0x" << std::hex << hpAddress << std::endl;
+	//mem->scan<int>(hpValue);
 
 	while (mem->processRunning()) /* while assaultcube is open */
 	{
@@ -48,16 +56,17 @@ int main()
 
 		/* read localplayer struct from memory (whose base was just gotten) */
 		lPlayer = mem->read<CPlayer>(lPlayerBase);
-		angles = lPlayer.lookAngles;
+		currentLookAngles = lPlayer.lookAngles;
+		currentHealth = lPlayer.health;
 
 		/* roll the screen left and right */
-		angles.roll = float(sin(tDelta * 5) * 90);
+		float roll = sin(tDelta * 5) * 90;
 
-		/* write the rolling angles to memory, which are stored 0x40 above localplayer */
-		mem->write<euler>(lPlayerBase + 0x40, angles);
+		/* write the rolling angle to memory */
+		mem->write<float>(lPlayerBase + offset::roll, roll);
 
-		/* write 69420 to our health, which are stored 0xf8 above localplayer, because thats funny */
-		mem->write<int>(lPlayerBase + 0xf8, 69420);
+		/* write 69420 to our health, because thats funny */
+		mem->write<int>(lPlayerBase + offset::health, 69420);
 
 		/* print the average (across the whole program time) iterations per second, every second */
 		iterations++;

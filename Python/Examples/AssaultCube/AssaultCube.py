@@ -12,7 +12,7 @@ import math
 import acStructs as ac
 
 # memory manager
-from pyMemory import *
+from pyMemory.pyMemory import *
 
 # create a manager for assaultCube. You can create multiple managers for multiple programs
 mem = memory()
@@ -25,7 +25,7 @@ print("Attached to Assault Cube")
 attachTime = time.time()
 
 # Get the base address for assaultcube's main module. (this is also called ac_client.exe)
-ac_client = mem.getModuleBase("ac_client.exe")
+ac_client = mem.getModule("ac_client.exe")
 
 # Main loop
 iterations = 0
@@ -39,16 +39,17 @@ while mem.processRunning(): # while assaultcube is open
     
     # read localplayer struct from memory (whose base was just gotten)
     lPlayer = mem.read(lPlayerBase, type = ac.CPlayer)
-    angles = lPlayer.lookAngles
+    currentLookAngles = lPlayer.lookAngles
+    currentHealth = lPlayer.health
     
     # roll the screen left and right
-    angles.roll = c.float(math.sin(tDelta * 5) * 90)
+    roll = c.float(math.sin(tDelta * 5) * 90)
     
-    # write the rolling angles to memory, which are stored 0x40 above localplayer
-    mem.write(lPlayerBase + 0x40, angles)
+    # write the rolling angle to memory
+    mem.write(lPlayerBase + ac.offset['roll'], roll)
 
-    # write 69420 to our health, which are stored 0xf8 above localplayer, because thats funny
-    mem.write(lPlayerBase + 0xf8, c.int(69420))
+    # write 69420 to our health, because thats funny
+    mem.write(lPlayerBase + ac.offset['health'], c.int(69420))
     
     # print the average (across the whole program time) iterations per second, every second
     iterations += 1
